@@ -1,0 +1,21 @@
+Dear {{ customer_name }},
+
+Your car wash booking has been confirmed!
+
+Booking Details:
+- Service: {{ booking.service.name }}
+- Date: {{ booking.booking_date }}
+- Time: {{ booking.booking_time }}
+- Car: {{ booking.car_model }} ({{ booking.car_plate }})
+- Amount Paid: KES {{ booking.service.price }}
+
+{% if booking.notes %}
+Special Instructions: {{ booking.notes }}
+{% endif %}
+
+Please arrive 5 minutes before your scheduled time.
+
+Thank you for choosing CarWash Pro!
+
+Best regards,
+CarWash Pro Team

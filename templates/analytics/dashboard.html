@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics Dashboard - Car Wash{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1 fw-bold">Analytics Dashboard</h2>
+            <p class="text-secondary mb-0">Business intelligence and performance metrics</p>
+        </div>
+        <a href="{% url 'employee_dashboard' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <!-- Revenue Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-success bg-gradient d-flex align-items-center justify-content-center me-3"
+                        style="width:48px;height:48px;">
+                        <i class="fa-solid fa-coins text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0">KES {{ total_revenue|floatformat:0 }}</h4>
+                        <p class="text-secondary mb-0">Total Revenue</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary bg-gradient d-flex align-items-center justify-content-center me-3"
+                        style="width:48px;height:48px;">
+                        <i class="fa-solid fa-calendar-week text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0">KES {{ monthly_revenue|floatformat:0 }}</h4>
+                        <p class="text-secondary mb-0">This Month</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-info bg-gradient d-flex align-items-center justify-content-center me-3"
+                        style="width:48px;height:48px;">
+                        <i class="fa-solid fa-chart-line text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0">KES {{ weekly_revenue|floatformat:0 }}</h4>
+                        <p class="text-secondary mb-0">This Week</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h4>{{ total_bookings }}</h4>
+                <p>Total Bookings</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h4>{{ completed_bookings }}</h4>
+                <p>Completed</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h4>{{ retention_rate }}%</h4>
+                <p>Customer Retention</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h4>{{ avg_rating }}/5</h4>
+                <p>Average Rating</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Service Popularity -->
+        <div class="col-lg-8">
+            <div class="card p-4">
+                <h5 class="mb-3">Service Popularity</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Bookings</th>
+                                <th>Revenue</th>
+                                <th>Avg. Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in service_stats %}
+                            <tr>
+                                <td>{{ service.name }}</td>
+                                <td>{{ service.booking_count }}</td>
+                                <td>KES {{ service.total_revenue|default:0|floatformat:0 }}</td>
+                                <td>KES {{ service.price }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reviews -->
+        <div class="col-lg-4">
+            <div class="card p-4">
+                <h5 class="mb-3">Recent Reviews</h5>
+                {% for review in recent_reviews|slice:":5" %}
+                <div class="mb-3 pb-3 border-bottom">
+                    <div class="d-flex align-items-center mb-2">
+                        <strong>
+                            {{ review.booking.customer.get_full_name }}
+                        </strong>
+                        <div class="ms-auto">
+                            {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %} <i class="fa-solid fa-star text-warning"></i>
+                                {% else %}
+                                <i class="fa-regular fa-star text-muted"></i>
+                                {% endif %}
+                                {% endfor %}
+                        </div>
+                    </div>
+                    <p class="text-secondary small mb-1">{{ review.booking.service.name }}</p>
+                    {% if review.comment %}
+                    <p class="mb-0 small">{{ review.comment|truncatewords:15 }}</p>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <p class="text-secondary">No reviews yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

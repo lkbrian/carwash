@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Services - Car Wash{% endblock %}
+
+{% block content %}
+<div class="container d-flex flex-column align-items-start mb-3 mb-lg-4">
+    <div class="d-flex flex-column align-items-start py-4">
+        <h2 class="mb-1 fw-bold">Our Services</h2>
+        <p class="text-secondary mb-0">Choose a package that fits your car’s needs</p>
+    </div>
+    <!-- <div class="d-none d-md-block">
+        <a href="{% url 'dashboard' %}" class="text-secondary"><i class="fa-solid fa-gauge-high me-2"></i>My Dashboard</a>
+    </div>
+    
+    <div class="d-md-none">
+        <a href="{% url 'dashboard' %}" class="">Dashboard</a>
+    </div> -->
+
+    {% if pending_payment %}
+    <div class="alert alert-warning mb-4">
+        <h5>⚠️ Incomplete Payment</h5>
+        <p>You have a pending payment for <strong>{{ pending_payment.service.name }}</strong> booked for {{
+            pending_payment.booking_date }}.</p>
+        <a href="{% url 'payment' pending_payment.id %}" class="btn btn-warning">Complete Payment</a>
+    </div>
+    {% endif %}
+
+    <div class="row g-4 align-items-stretch">
+        {% for service in services %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-lg" style="background: white;">
+                <div class="card-body p-4 d-flex flex-column">
+                    <h5 class="fw-bold text-uppercase mb-3" style="color: #E51A2C;">{{ service.name }}</h5>
+                    <div class="mb-3">
+                        <h2 class="fw-bold mb-0" style="color: #2c3e50;">KES {{ service.price }}</h2>
+                        <small class="text-muted">{{ service.duration }} minutes</small>
+                    </div>
+                    <ul class="list-unstyled mb-4 flex-grow-1">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                            <span>{{ service.description }}</span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                            <span>Professional equipment</span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                            <span>Quality guarantee</span>
+                        </li>
+                    </ul>
+                    <a href="{% url 'book_service' service.id %}" class="btn fw-bold text-white w-100 py-2"
+                        style="background-color: #E51A2C; border: none;">
+                        BOOK NOW →
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p>No services available at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endblock %}

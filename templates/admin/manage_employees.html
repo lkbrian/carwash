@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Employees - Car Wash{% endblock %}
+
+{% block content %}
+<div class="container py-4 min-vh-100 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1 fw-bold">Manage Employees</h2>
+            <p class="text-secondary mb-0">Employee approvals and management</p>
+        </div>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Pending Approvals -->
+    {% if pending_employees %}
+    <div class="card p-4 mb-4">
+        <div class="d-flex align-items-center mb-3">
+            <i class="fa-solid fa-clock text-warning me-2"></i>
+            <h5 class="mb-0">Pending Approvals ({{ pending_employees.count }})</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Applied</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in pending_employees %}
+                    <tr>
+                        <td>{{ employee.get_full_name|default:employee.username }}</td>
+                        <td>{{ employee.email }}</td>
+                        <td>{{ employee.profile.phone|default:"-" }}</td>
+                        <td>
+                            <span class="badge bg-secondary">{{ employee.profile.get_role_display }}</span>
+                        </td>
+                        <td>{{ employee.date_joined|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                    data-bs-target="#approveModal"
+                                    onclick="setEmployeeData('{{ employee.id }}', '{{ employee.get_full_name|default:employee.username }}', 'approve')">
+                                    <i class="fa-solid fa-check me-1"></i>Approve
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
+                                    data-bs-target="#rejectModal"
+                                    onclick="setEmployeeData('{{ employee.id }}', '{{ employee.get_full_name|default:employee.username }}', 'reject')">
+                                    <i class="fa-solid fa-times me-1"></i>Reject
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Active Employees -->
+    <div class="card p-4">
+        <div class="d-flex align-items-center mb-3">
+            <i class="fa-solid fa-users text-success me-2"></i>
+            <h5 class="mb-0">Active Employees ({{ approved_employees.count }})</h5>
+        </div>
+        {% if approved_employees %}
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in approved_employees %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-primary bg-gradient d-flex align-items-center justify-content-center me-2"
+                                    style="width:32px;height:32px;">
+                                    <i class="fa-solid fa-user text-white small"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-medium">{{ employee.get_full_name|default:employee.username }}</div>
+                                    <small class="text-muted">@{{ employee.username }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ employee.email }}</td>
+                        <td>{{ employee.profile.phone|default:"-" }}</td>
+                        <td>
+                            <span
+                                class="badge bg-{% if employee.profile.role == 'admin' %}danger{% elif employee.profile.role == 'supervisor' %}warning{% else %}primary{% endif %}">
+                                {{ employee.profile.get_role_display }}
+                            </span>
+                        </td>
+                        <td>{{ employee.date_joined|date:"M d, Y" }}</td>
+                        <td>
+                            <span class="badge bg-success">Active</span>
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                    data-bs-toggle="dropdown">
+                                    Actions
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="editEmployee('{{ employee.id }}')">
+                                            <i class="fa-solid fa-edit me-2"></i>Edit Role
+                                        </a></li>
+                                    <li><a class="dropdown-item text-danger" href="#"
+                                            onclick="deactivateEmployee('{{ employee.id }}')">
+                                            <i class="fa-solid fa-user-slash me-2"></i>Deactivate
+                                        </a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <p class="text-secondary">No active employees found.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Approval Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Approve Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-success bg-gradient d-flex align-items-center justify-content-center me-3"
+                        style="width:48px;height:48px;">
+                        <i class="fa-solid fa-check text-white"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">Approve Employee Application</h6>
+                        <p class="text-muted mb-0">This action will activate the employee account and send a
+                            notification email.</p>
+                    </div>
+                </div>
+                <p>Are you sure you want to approve <strong id="approveEmployeeName"></strong> as an employee?</p>
+                <div class="alert alert-info">
+                    <i class="fa-solid fa-info-circle me-2"></i>
+                    The employee will receive an email notification and can immediately access their dashboard.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="approveLink" class="btn btn-success">
+                    <i class="fa-solid fa-check me-1"></i>Approve Employee
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rejection Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reject Employee Application</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-danger bg-gradient d-flex align-items-center justify-content-center me-3"
+                        style="width:48px;height:48px;">
+                        <i class="fa-solid fa-times text-white"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">Reject Employee Application</h6>
+                        <p class="text-muted mb-0">This action will permanently remove the application and notify the
+                            applicant.</p>
+                    </div>
+                </div>
+                <p>Are you sure you want to reject <strong id="rejectEmployeeName"></strong>'s application?</p>
+                <div class="alert alert-warning">
+                    <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                    This action cannot be undone. The applicant will be notified via email.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="rejectLink" class="btn btn-danger">
+                    <i class="fa-solid fa-times me-1"></i>Reject Application
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentEmployeeId = null;
+    let currentEmployeeName = null;
+
+    function setEmployeeData(employeeId, employeeName, action) {
+        currentEmployeeId = employeeId;
+        currentEmployeeName = employeeName;
+
+        if (action === 'approve') {
+            document.getElementById('approveEmployeeName').textContent = employeeName;
+            document.getElementById('approveLink').href = `/admin-dashboard/employees/approve/${employeeId}/`;
+        } else if (action === 'reject') {
+            document.getElementById('rejectEmployeeName').textContent = employeeName;
+            document.getElementById('rejectLink').href = `/admin-dashboard/employees/reject/${employeeId}/`;
+        }
+    }
+
+    function editEmployee(employeeId) {
+        // Add edit functionality
+        console.log('Editing employee:', employeeId);
+    }
+
+    function deactivateEmployee(employeeId) {
+        if (confirm('Are you sure you want to deactivate this employee?')) {
+            // Add AJAX call to deactivate employee
+            console.log('Deactivating employee:', employeeId);
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Review - Car Wash{% endblock %}
+
+{% block content %}
+<div class="container py-4 min-vh-100">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card p-4 p-lg-5">
+                <div class="text-center mb-4">
+                    <div class="rounded-circle bg-primary bg-gradient d-inline-flex align-items-center justify-content-center"
+                        style="width:64px;height:64px;">
+                        <i class="fa-solid fa-star text-white"></i>
+                    </div>
+                    <h3 class="mt-3 mb-1">Rate Your Experience</h3>
+                    <p class="text-muted">Help us improve our service</p>
+                </div>
+
+                <div class="card p-3 mb-4">
+                    <h6 class="mb-1">{{ booking.service.name }}</h6>
+                    <p class="text-secondary mb-1">{{ booking.booking_date }} at {{ booking.booking_time }}</p>
+                    <p class="text-secondary mb-0">{{ booking.car_model }} ({{ booking.car_plate }})</p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-input d-flex gap-2 mb-2">
+                            {% for i in "12345" %}
+                            <label class="rating-star">
+                                <input type="radio" name="rating" value="{{ forloop.counter }}" required>
+                                <i class="fa-solid fa-star"></i>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        <small class="text-muted">Click to rate from 1 to 5 stars</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Comment (Optional)</label>
+                        <textarea name="comment" class="form-control" rows="4"
+                            placeholder="Tell us about your experience..."></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-accent">Submit Review</button>
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Skip</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rating-input {
+        font-size: 1.5rem;
+    }
+
+    .rating-star {
+        cursor: pointer;
+        color: #ddd;
+        transition: color 0.2s;
+    }
+
+    .rating-star input {
+        display: none;
+    }
+
+    .rating-star:hover,
+    .rating-star:hover~.rating-star {
+        color: #ffc107;
+    }
+
+    .rating-star input:checked~i,
+    .rating-star input:checked~.rating-star i {
+        color: #ffc107;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const stars = document.querySelectorAll('.rating-star');
+
+        stars.forEach((star, index) => {
+            star.addEventListener('click', function () {
+                // Reset all stars
+                stars.forEach(s => s.style.color = '#ddd');
+
+                // Color selected stars
+                for (let i = 0; i <= index; i++) {
+                    stars[i].style.color = '#ffc107';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

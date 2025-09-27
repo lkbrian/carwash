@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Supervisor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 min-vh-100 px-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Supervisor Dashboard</h2>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Pending Approval</h6>
+                            <h3 class="mb-0">{{ pending_approval }}</h3>
+                            <small>Jobs to Review</small>
+                        </div>
+                        <i class="fa-solid fa-clock fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">In Progress</h6>
+                            <h3 class="mb-0">{{ in_progress }}</h3>
+                            <small>Active Jobs</small>
+                        </div>
+                        <i class="fa-solid fa-spinner fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Completed Today</h6>
+                            <h3 class="mb-0">{{ completed_today }}</h3>
+                            <small>Jobs Finished</small>
+                        </div>
+                        <i class="fa-solid fa-check fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Bookings</h6>
+                            <h3 class="mb-0">{{ total_bookings }}</h3>
+                            <small>All Time</small>
+                        </div>
+                        <i class="fa-solid fa-chart-bar fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Jobs Pending Approval -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Jobs Pending Approval</h5>
+                    <input type="text" class="form-control w-25" placeholder="Search jobs..." id="jobSearch">
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="jobsTable">
+                            <thead>
+                                <tr>
+                                    <th>Ticket #</th>
+                                    <th>Employee</th>
+                                    <th>Customer</th>
+                                    <th>Service</th>
+                                    <th>Completed At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for job in pending_jobs %}
+                                <tr>
+                                    <td><strong>#{{ job.ticket_number }}</strong></td>
+                                    <td>{{ job.assigned_employee.get_full_name|default:job.assigned_employee.username }}
+                                    </td>
+                                    <td>{{ job.customer.get_full_name|default:job.customer.username }}</td>
+                                    <td>{{ job.service.name }}</td>
+                                    <td>{{ job.work_completed_at|date:"M d, H:i" }}</td>
+                                    <td>
+                                        <button class="btn btn-success btn-sm" data-bs-toggle="modal"
+                                            data-bs-target="#approveModal"
+                                            onclick="setJobData(`{{ job.id }}`, '{{ job.ticket_number }}', 'approve')">
+                                            <i class="fa-solid fa-check me-1"></i>Approve
+                                        </button>
+                                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                                            data-bs-target="#rejectModal"
+                                            onclick="setJobData(`{{ job.id }}`, '{{ job.ticket_number }}', 'reject')">
+                                            <i class="fa-solid fa-undo me-1"></i>Rework
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">No jobs pending approval</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employee Performance -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Employee Performance</h5>
+                </div>
+                <div class="card-body">
+                    {% for employee in employee_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-2 border rounded">
+                        <div>
+                            <strong>{{ employee.get_full_name|default:employee.username }}</strong>
+                            <br><small class="text-muted">{{ employee.completed_jobs }} jobs completed</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-primary">
+                                {{ employee.avg_rating|floatformat:1|default:"N/A"}}/5
+                            </span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No employee data available</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approve Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Approve Job</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to approve job <strong id="approveJobNumber"></strong>?</p>
+                <div class="alert alert-success">
+                    <i class="fa-solid fa-check-circle me-2"></i>
+                    This will mark the job as completed and notify the customer.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="approveLink" class="btn btn-success">
+                    <i class="fa-solid fa-check me-1"></i>Approve Job
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Send for Rework</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Send job <strong id="rejectJobNumber"></strong> back for rework?</p>
+                <div class="alert alert-warning">
+                    <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                    This will return the job to the employee for additional work.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="rejectLink" class="btn btn-warning">
+                    <i class="fa-solid fa-undo me-1"></i>Send for Rework
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function setJobData(jobId, jobNumber, action) {
+        if (action === 'approve') {
+            document.getElementById('approveJobNumber').textContent = jobNumber;
+            document.getElementById('approveLink').href = `/supervisor/approve/${jobId}/`;
+        } else if (action === 'reject') {
+            document.getElementById('rejectJobNumber').textContent = jobNumber;
+            document.getElementById('rejectLink').href = `/supervisor/reject/${jobId}/`;
+        }
+    }
+
+    // Search functionality
+    document.getElementById('jobSearch').addEventListener('keyup', function () {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#jobsTable tbody tr');
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

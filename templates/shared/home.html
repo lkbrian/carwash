@@ -1,0 +1,385 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero -->
+<section id="home" class="" style="">
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true"
+                aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+        </div>
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="hero-banner">
+                    <div class="hero-content">
+                        <div class="hero-kicker">[CAR EXTERIOR DETAILING SERVICE]</div>
+                        <h1 class="display-4 hero-title mt-2 mb-3">Car Washing Inside & Outside</h1>
+                        <p class="lead mb-4">Professional, thorough, and fast car washing and detailing at your
+                            convenience.</p>
+                        <div class="hero-ctas d-flex flex-wrap gap-2">
+                            <a class="btn btn-hero-primary rounded-pill" href="{% url 'services' %}">READ MORE</a>
+                            <a class="btn btn-hero-outline rounded-pill" href="{% url 'services' %}">GET APPOINTMENT</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="hero-banner">
+                    <div class="hero-content">
+                        <div class="hero-kicker">[INTERIOR DETAILING SERVICE]</div>
+                        <h1 class="display-4 hero-title mt-2 mb-3">Professional Interior Detailing</h1>
+                        <p class="lead mb-4">Deep clean interiors with premium products and meticulous care.</p>
+                        <div class="hero-ctas d-flex flex-wrap gap-2">
+                            <a class="btn btn-hero-primary rounded-pill" href="{% url 'services' %}">READ MORE</a>
+                            <a class="btn btn-hero-outline rounded-pill" href="{% url 'services' %}">GET APPOINTMENT</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- About Us -->
+<section id="about" class="position-relative overflow-hidden" style="">
+    <!-- Full-width background with parallax effect -->
+
+    <div class="container position-relative py-3" style="z-index: 2;">
+        <div class="d-flex justify-content-center align-items-center w-100 mb-4 py-4">
+            <h1 class="mb-0 text-center fw-bolder align-self-center">About Us</h1>
+        </div>
+
+        <!-- Text and Image Row -->
+        <div class="row g-5 align-items-start mb-5">
+            <!-- Text Content - Left -->
+            <div class="col-lg-6">
+                <h5 class="fw-bold fs-5">Who we Are</h5>
+                <p class="">At Sparkling Car Wash, we're dedicated to providing consistently high-quality car care
+                    that you can trust. Our experienced staff use premium products to give your vehicle a spotless clean
+                    — inside and out.</p>
+
+                <p class="mb-4">From quick exterior washes to full-service detailing, every option is designed with your
+                    satisfaction in mind. Booking is simple and convenient through our online system, letting you
+                    schedule your wash when it suits you best.</p>
+
+                <p class="mb-0">We know your time is valuable, so we've made the entire process fast, smooth, and
+                    hassle-free. Our user-friendly booking and payment experience means no waiting around and no
+                    confusion. You'll always know what to expect, and you'll get exactly what you pay for — every time.
+                </p>
+            </div>
+
+            <!-- Image - Right -->
+            <div class="col-lg-6">
+                <img src="https://images.pexels.com/photos/4665707/pexels-photo-4665707.jpeg"
+                    alt="Professional car washing service" class="img-fluid rounded shadow-lg"
+                    style="object-position: center; height: 450px; width: 100%; object-fit: cover;">
+            </div>
+        </div>
+
+        <!-- Core Value Cards - Bottom -->
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center p-4 rounded-3 shadow-lg h-100" style="background: white;">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow"
+                        style="width: 70px; height: 70px; background: linear-gradient(135deg, #E51A2C, #ff4757);">
+                        <i class="fa-solid fa-spray-can-sparkles fa-xl text-white"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2 text-dark">Premium Quality</h5>
+                    <p class="mb-0 small text-muted">Professional-grade products and meticulous attention to every
+                        detail.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-4 rounded-3 shadow-lg h-100" style="background: white;">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow"
+                        style="width: 70px; height: 70px; background: linear-gradient(135deg, #E51A2C, #ff4757);">
+                        <i class="fa-solid fa-stopwatch fa-xl text-white"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2 text-dark">Time Efficient</h5>
+                    <p class="mb-0 small text-muted">Quick turnaround without ever compromising on quality standards.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-4 rounded-3 shadow-lg h-100" style="background: white;">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow"
+                        style="width: 70px; height: 70px; background: linear-gradient(135deg, #E51A2C, #ff4757);">
+                        <i class="fa-solid fa-location-dot fa-xl text-white"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2 text-dark">Convenient Access</h5>
+                    <p class="mb-0 small text-muted">Multiple locations across Nairobi with flexible scheduling options.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Preview (What We Offer) -->
+<section id="offer" class="position-relative" style="background: #f5f4f4; ">
+    <div class="container" style="z-index: 20;">
+        <div class="d-flex justify-content-center align-items-center w-100 mb-4 py-3">
+            <h1 class="mb-0 text-center fw-bolder align-self-center">Popular Services</h1>
+        </div>
+        <div class="row g-4">
+            {% for service in services|slice:":3" %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm" style="background: white;">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <h5 class="fw-bold text-uppercase mb-3" style="color: #E51A2C;">{{ service.name }}</h5>
+                        <div class="mb-3">
+                            <h2 class="fw-bold mb-0" style="color: #2c3e50;">KES {{ service.price }}</h2>
+                            <small class="text-muted">{{ service.duration }} minutes</small>
+                        </div>
+                        <ul class="list-unstyled mb-4 flex-grow-1">
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                                <span>{{ service.description }}</span>
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                                <span>Professional equipment</span>
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                                <span>Quality guarantee</span>
+                            </li>
+                        </ul>
+                        <a href="{% url 'book_service' service.id %}" class="btn fw-bold text-white w-100 py-2"
+                            style="background-color: #E51A2C; border: none;">
+                            BOOK NOW →
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <!-- <div class="col-12"><p class="text-secondary">No services available at the moment.</p></div> -->
+            <div class="row g-4 mt-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm" style="background: white;">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h5 class="fw-bold text-uppercase mb-3" style="color: #E51A2C;">EXTERIOR SERVICES</h5>
+                            <ul class="list-unstyled mb-4 flex-grow-1">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                                    <span>Drive-Thru Wash</span>
+                                    <div class="fw-bold" style="color: #2c3e50;">KES 500</div>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                                    <span>Wheel Cleaning</span>
+                                    <div class="fw-bold" style="color: #2c3e50;">KES 300</div>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                                    <span>Exterior Washing</span>
+                                    <div class="fw-bold" style="color: #2c3e50;">KES 800</div>
+                                </li>
+                            </ul>
+                            <a href="{% url 'services' %}" class="btn fw-bold text-white w-100 py-2"
+                                style="background-color: #E51A2C; border: none;">
+                                BOOK NOW →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm" style="background: white;">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h5 class="fw-bold text-uppercase mb-3" style="color: #E51A2C;">INTERIOR SERVICES</h5>
+                            <ul class="list-unstyled mb-4 flex-grow-1">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                                    <span>Interior Cleaning</span>
+                                    <div class="fw-bold" style="color: #2c3e50;">KES 600</div>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                                    <span>Interior Detailing</span>
+                                    <div class="fw-bold" style="color: #2c3e50;">KES 1200</div>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                                    <span>Deep Clean Service</span>
+                                    <div class="fw-bold" style="color: #2c3e50;">KES 900</div>
+                                </li>
+                            </ul>
+                            <a href="{% url 'services' %}" class="btn fw-bold text-white w-100 py-2"
+                                style="background-color: #E51A2C; border: none;">
+                                BOOK NOW →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm" style="background: white;">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h5 class="fw-bold text-uppercase mb-3" style="color: #E51A2C;">PREMIUM PACKAGE</h5>
+                            <div class="mb-3">
+                                <h2 class="fw-bold mb-0" style="color: #2c3e50;">KES 2500</h2>
+                                <small class="text-muted">150 minutes</small>
+                            </div>
+                            <ul class="list-unstyled mb-4 flex-grow-1">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                                    <span>Complete exterior wash</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                                    <span>Interior detailing</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                                    <span>Engine cleaning</span>
+                                </li>
+                            </ul>
+                            <a href="{% url 'services' %}" class="btn fw-bold text-white w-100 py-2"
+                                style="background-color: #E51A2C; border: none;">
+                                BOOK NOW →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            <div class="d-flex justify-content-center align-items-end mb-4">
+                <a href="{% url 'services' %}" class="fw-medium fs-5 mt-2"
+                    style="color: #E51A2C; text-decoration: underline; text-underline-offset: 4px;">View available
+                    services</a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Static service categories -->
+
+</section>
+
+<!-- How it works -->
+<section id="how" class="position-relative overflow-hidden" style="min-height: 70vh; ">
+    <!-- Full-width background with parallax effect -->
+    <div class="position-absolute w-100 h-100"
+        style="background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.5)), url('https://images.pexels.com/photos/372810/pexels-photo-372810.jpeg') center/cover fixed; transform: scale(1.1);">
+    </div>
+
+    <div class="container position-relative py-3" style="z-index: 2;">
+        <div class="  align-items-center">
+            <div class="col-12 text-white">
+                <h2 class="display-4 fw-bold text-center">How It Works</h2>
+                <h5 class="fs-5 fst-italic  mb-0 text-center" style="color: #E51A2C;">"Simple steps to a
+                    spotless
+                    car"</h5>
+
+                <!-- Process Steps -->
+                <div class="row g-4" style="margin-top: 10%;">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="text-center p-4 rounded-3 shadow-lg h-100"
+                            style="background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow"
+                                style="width: 70px; height: 70px; background: linear-gradient(135deg, #E51A2C, #ff4757);">
+                                <span class="fw-bold text-white fs-4">01</span>
+                            </div>
+                            <h5 class="fw-bold mb-2 text-dark">Book Online</h5>
+                            <p class="mb-0 small text-muted">Choose your service and schedule a convenient time through
+                                our platform.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="text-center p-4 rounded-3 shadow-lg h-100"
+                            style="background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow"
+                                style="width: 70px; height: 70px; background: linear-gradient(135deg, #E51A2C, #ff4757);">
+                                <span class="fw-bold text-white fs-4">02</span>
+                            </div>
+                            <h5 class="fw-bold mb-2 text-dark">Vehicle Inspection</h5>
+                            <p class="mb-0 small text-muted">Our team inspects your vehicle to determine the best
+                                cleaning approach.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="text-center p-4 rounded-3 shadow-lg h-100"
+                            style="background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow"
+                                style="width: 70px; height: 70px; background: linear-gradient(135deg, #E51A2C, #ff4757);">
+                                <span class="fw-bold text-white fs-4">03</span>
+                            </div>
+                            <h5 class="fw-bold mb-2 text-dark">Professional Wash</h5>
+                            <p class="mb-0 small text-muted">Expert cleaning using premium products and professional
+                                techniques.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="text-center p-4 rounded-3 shadow-lg h-100"
+                            style="background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow"
+                                style="width: 70px; height: 70px; background: linear-gradient(135deg, #E51A2C, #ff4757);">
+                                <span class="fw-bold text-white fs-4">04</span>
+                            </div>
+                            <h5 class="fw-bold mb-2 text-dark">Quality Check</h5>
+                            <p class="mb-0 small text-muted">Final inspection ensures your vehicle meets our quality
+                                standards.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact form -->
+<section id="contact" class="py-3" style="">
+    <div class="d-flex justify-content-center align-items-center w-100 py-4 mb-4">
+        <h1 class="mb-0 text-center fw-bolder align-self-center">Get In Touch</h1>
+    </div>
+    <div class="container contact-card card p-0 border-0">
+        <div class="row g-0">
+            <div class="col-lg-6 contact-image"></div>
+            <div class="col-lg-6 contact-panel p-4 p-lg-5">
+                <div class="mb-2 text-uppercase" style="letter-spacing:.12em; opacity:.8">Book an appointment</div>
+                <h3 class="mb-3">Apply for a Car Wash</h3>
+                <form method="post" action="#" onsubmit="return false;">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" placeholder="Your name">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" placeholder="name@example.com">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input type="text" class="form-control" placeholder="+254 700 000 000">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Website (optional)</label>
+                            <input type="url" class="form-control" placeholder="https://">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Time</label>
+                            <input type="time" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Subject</label>
+                            <input type="text" class="form-control" placeholder="e.g., Interior detailing">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Details</label>
+                            <textarea class="form-control" rows="4" placeholder="Anything we should know..."></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-3 align-items-center"><button
+                            class="btn btn-accent self-center rounded-pill text-uppercase fw-medium" type="button">Get
+                            Appointment</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

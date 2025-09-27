@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Employee Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 min-vh-100 px-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Employee Dashboard</h2>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Today</h6>
+                            <h3 class="mb-0">{{ completed_today }}</h3>
+                            <small>Jobs Completed</small>
+                        </div>
+                        <i class="fa-solid fa-calendar-day fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">This Week</h6>
+                            <h3 class="mb-0">{{ completed_this_week }}</h3>
+                            <small>Jobs Completed</small>
+                        </div>
+                        <i class="fa-solid fa-calendar-week fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">This Month</h6>
+                            <h3 class="mb-0">{{ completed_this_month }}</h3>
+                            <small>Jobs Completed</small>
+                        </div>
+                        <i class="fa-solid fa-calendar-alt fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Rating</h6>
+                            <h3 class="mb-0">{{ avg_rating }}/5</h3>
+                            <small>Average Rating</small>
+                        </div>
+                        <i class="fa-solid fa-star fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Work Alert -->
+    {% if current_work %}
+    <div class="alert alert-warning">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-exclamation-triangle me-3"></i>
+            <div class="flex-grow-1">
+                <strong>Current Job in Progress:</strong> {{ current_work.service.name }} - Ticket #{{
+                current_work.ticket_number }}
+                <br><small>You must complete this job before claiming new work.</small>
+            </div>
+            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#completeModal"
+                onclick="setCompletionData(`{{current_work.id}}` , '{{ current_work.ticket_number }}')">
+                <i class="fa-solid fa-check me-1"></i>Complete Job
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Tabbed Interface -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="employeeTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="my-jobs-tab" data-bs-toggle="tab"
+                                data-bs-target="#my-jobs" type="button" role="tab">
+                                My Jobs ({{ assigned_bookings|length }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="available-jobs-tab" data-bs-toggle="tab"
+                                data-bs-target="#available-jobs" type="button" role="tab">
+                                Available Jobs ({{ unassigned_bookings|length }})
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="employeeTabsContent">
+                        <!-- My Jobs Tab -->
+                        <div class="tab-pane fade show active" id="my-jobs" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">My Assigned Jobs</h6>
+                                <input type="text" class="form-control w-25" placeholder="Search my jobs..."
+                                    id="myJobsSearch">
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="myJobsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Ticket #</th>
+                                            <th>Service</th>
+                                            <th>Customer</th>
+                                            <th>Date & Time</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for booking in assigned_bookings %}
+                                        <tr>
+                                            <td><strong>#{{ booking.ticket_number }}</strong></td>
+                                            <td>{{ booking.service.name }}</td>
+                                            <td>{{ booking.customer.get_full_name|default:booking.customer.username }}
+                                            </td>
+                                            <td>{{ booking.booking_date }} {{ booking.booking_time }}</td>
+                                            <td>
+                                                <span
+                                                    class="badge bg-{% if booking.status == 'completed' %}success{% elif booking.status == 'in_progress' %}warning{% elif booking.status == 'pending_approval' %}info{% else %}secondary{% endif %}">
+                                                    {{ booking.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if booking.status == 'assigned' %}
+                                                <form method="post"
+                                                    action="{% url 'update_booking_status' booking.id %}"
+                                                    class="d-inline">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="status" value="in_progress">
+                                                    <button type="submit" class="btn btn-success btn-sm">Start
+                                                        Work</button>
+                                                </form>
+                                                {% elif booking.status == 'in_progress' %}
+
+                                                <button type="button" class="btn btn-primary btn-sm"
+                                                    data-bs-toggle="modal" data-bs-target="#completeModal"
+                                                    onclick="setCompletionData(`{{ booking.id }}`, '{{ booking.ticket_number }}')">
+                                                    Submit for Approval
+                                                </button>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted">No assigned jobs</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Available Jobs Tab -->
+                        <div class="tab-pane fade" id="available-jobs" role="tabpanel">
+                            {% if current_work %}
+                            <div class="text-center py-5">
+                                <i class="fa-solid fa-lock fa-4x text-muted mb-3"></i>
+                                <h5 class="text-muted">Complete Current Job First</h5>
+                                <p class="text-muted">You must complete job #{{ current_work.ticket_number }} before
+                                    claiming new work.</p>
+                            </div>
+                            {% else %}
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Available Jobs</h6>
+                                <input type="text" class="form-control w-25" placeholder="Search available jobs..."
+                                    id="availableJobsSearch">
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="availableJobsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Ticket #</th>
+                                            <th>Service</th>
+                                            <th>Customer</th>
+                                            <th>Date & Time</th>
+                                            <th>Car Details</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for booking in unassigned_bookings %}
+                                        <tr>
+                                            <td><strong>#{{ booking.ticket_number }}</strong></td>
+                                            <td>{{ booking.service.name }}</td>
+                                            <td>{{ booking.customer.get_full_name|default:booking.customer.username }}
+                                            </td>
+                                            <td>{{ booking.booking_date }} {{ booking.booking_time }}</td>
+                                            <td>{{ booking.car_model }} ({{ booking.car_plate }})</td>
+                                            <td>
+                                                <form method="post" action="{% url 'claim_booking' booking.id %}">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-outline-primary btn-sm">Claim
+                                                        Job</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted">No available jobs</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Completion Modal -->
+<div class="modal fade" id="completeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Complete Job</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" id="completeForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="status" value="completed">
+                    <div class="mb-3">
+                        <label class="form-label">Job Completion Notes</label>
+                        <textarea name="completion_notes" class="form-control" rows="4"
+                            placeholder="Describe the work completed, any issues found, or additional services provided..."></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="quality_check" class="form-check-input" id="qualityCheck" required>
+                        <label class="form-check-label" for="qualityCheck">
+                            I confirm that quality standards have been met
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-check me-1"></i>Complete Job
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function setCompletionData(bookingId, ticketNumber) {
+        document.getElementById('completeForm').action = `/employee/complete/${bookingId}/`;
+        console.log("data sent", document.getElementById('completeForm').value)
+    }
+
+    // Search functionality for My Jobs
+    document.getElementById('myJobsSearch').addEventListener('keyup', function () {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#myJobsTable tbody tr');
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+
+    // Search functionality for Available Jobs
+    document.getElementById('availableJobsSearch').addEventListener('keyup', function () {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#availableJobsTable tbody tr');
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

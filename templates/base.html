@@ -9,10 +9,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Jost:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Jost:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Saira:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
     <!-- Font Awesome 6 Free -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
@@ -21,6 +23,8 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> -->
+
 </head>
 
 <body class="app-body">
@@ -28,8 +32,8 @@
         <div class="container">
             <!-- Left: Brand -->
             <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
-                <i class="fa-solid fa-car-side me-2"></i>
-                <span>CarWash Pro</span>
+                <!-- <i class="fa-solid fa-car-side me-2"></i> -->
+                <h1 class="fs-2 fw-bold">Sparkling <span class="text-danger">Car Wash</span></h1>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
                 aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,18 +42,24 @@
             <div class="collapse navbar-collapse" id="navMenu">
                 <!-- Center: Navigation -->
                 <ul class="navbar-nav mx-auto align-items-lg-center">
+                    {% if not user.is_authenticated %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#home">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#about">About Us</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#offer">What We Offer</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#how">How It Works</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#contact">Contact</a></li>
+                    {% endif %}
                     <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'services' %}">Services</a></li>
                     {% if user.is_authenticated %}
-                        {% if user.profile.is_employee %}
-                        <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'employee_dashboard' %}">Employee Dashboard</a></li>
-                        {% else %}
-                        <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
-                        {% endif %}
+                    {% if user.profile.role == 'admin' or user.is_superuser %}
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'admin_dashboard' %}">Admin
+                            Dashboard</a></li>
+                    {% elif user.profile.is_employee %}
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'employee_dashboard' %}">Employee
+                            Dashboard</a></li>
+                    {% else %}
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
+                    {% endif %}
                     {% endif %}
                 </ul>
 
@@ -63,8 +73,8 @@
                     <a class="btn btn-sm btn-accent" href="{% url 'logout' %}"><i
                             class="fa-solid fa-right-from-bracket me-1"></i>Logout</a>
                     {% else %}
-                    <a class="nav-link" href="{% url 'login' %}">Login</a>
-                    <a class="btn btn-sm btn-accent rounded-pill" href="{% url 'register' %}">Get Started</a>
+                    <a class="btn btn-sm btn-accent rounded-pill" href="{% url 'login' %}">Login</a>
+                    <a class="btn btn-sm btn-accent rounded-pill" href="{% url 'register_type' %}">Get Started</a>
                     <a class="nav-link" href="{% url 'employee_register' %}">Employee Register</a>
                     {% endif %}
                 </div>
@@ -72,7 +82,7 @@
         </div>
     </nav>
 
-    <main class="min-h-[calc(100vh-100px)]">
+    <main class="min-h-[100ch]">
         {% if messages %}
         {% for message in messages %}
         <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
@@ -89,7 +99,7 @@
         <div class="container">
             <div class="row g-4">
                 <div class="col-md-6 col-lg-3">
-                    <h5 class="text-white mb-2">CarWash Pro</h5>
+                    <h5 class="text-white mb-2">Sparkling Car Wash</h5>
                     <p class="mb-3" style="color:#cbd5e1">Sparkling clean, every time.</p>
                     <div class="mb-2 small"><i class="fa-solid fa-phone me-2"></i><span style="color:#cbd5e1">+254 700
                             000 000</span></div>
@@ -125,7 +135,7 @@
             </div>
             <hr class="border-secondary mt-4">
             <div class="d-flex justify-content-between align-items-center">
-                <div class="text-muted small">© {{ now|default:"" }} CarWash Pro. All rights reserved.</div>
+                <div class="text-secondary small">© {{ now|default:"" }} Sparkling Car Wash All rights reserved.</div>
             </div>
         </div>
     </footer>

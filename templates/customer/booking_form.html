@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Book {{ service.name }} - Car Wash{% endblock %}
+
+{% block content %}
+<div class="row g-4 min-vh-100 p-4">
+    <div class="col-md-8">
+        <div class="card p-4 p-lg-5">
+            <!-- <h4 class="mb-4">{{ service.name }}</h4> -->
+            <h5 class="fw-bold text-uppercase mb-3" style="color: #111;">Book {{ service.name }}</h5>
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Booking Date</label>
+                        <input type="date" name="booking_date" id="booking_date" class="form-control form-control-lg"
+                            required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Booking Time</label>
+                        <input type="time" name="booking_time" id="booking_time" class="form-control form-control-lg"
+                            required>
+                    </div>
+                </div>
+                <div class="row g-3 mt-1">
+                    <div class="col-md-6">
+                        <label class="form-label">Car Model</label>
+                        <input type="text" name="car_model" class="form-control form-control-lg"
+                            placeholder="e.g., Toyota Camry" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">License Plate</label>
+                        <input type="text" name="car_plate" class="form-control form-control-lg"
+                            placeholder="e.g., KCA 123A" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Additional Notes</label>
+                    <textarea name="notes" class="form-control form-control-lg" rows="3"
+                        placeholder="Any special instructions..."></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-accent btn-lg">Proceed to Payment</button>
+                    <a href="{% url 'services' %}" class="btn btn-outline-secondary btn-lg">Back to Services</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-4">
+            <div class="card-body p-4 d-flex flex-column">
+                <h5 class="fw-bold text-uppercase mb-3" style="color: #E51A2C;">{{ service.name }}</h5>
+                <div class="mb-3">
+                    <h2 class="fw-bold mb-0" style="color: #2c3e50;">KES {{ service.price }}</h2>
+                    <small class="text-muted">{{ service.duration }} minutes</small>
+                </div>
+                <ul class="list-unstyled mb-4 flex-grow-1">
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                        <span>{{ service.description }}</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                        <span>Professional equipment</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle me-2" style="color: #E51A2C;"></i>
+                        <span>Quality guarantee</span>
+                    </li>
+                </ul>
+                <a href="{% url 'book_service' service.id %}" class="btn fw-bold text-white w-100 py-2"
+                    style="background-color: #E51A2C; border: none;">
+                    BOOK NOW →
+                </a>
+            </div>
+        </div>
+    </div>
+    <script>
+        const bookingDateInput = document.getElementById('booking_date');
+        const bookingTimeInput = document.getElementById('booking_time');
+
+        // Set today's date as minimum for booking_date
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        bookingDateInput.min = today;
+
+        // When booking date changes, update the min time
+        bookingDateInput.addEventListener('change', function () {
+            const selectedDate = this.value;
+            const currentDate = new Date();
+            const selected = new Date(selectedDate);
+
+            if (selected.toDateString() === currentDate.toDateString()) {
+                // If booking is today, set min time to now
+                let hours = currentDate.getHours();
+                let minutes = currentDate.getMinutes();
+
+                // Pad with leading zeros
+                if (hours < 10) hours = '0' + hours;
+                if (minutes < 10) minutes = '0' + minutes;
+
+                bookingTimeInput.min = `${hours}:${minutes}`;
+            } else {
+                // If not today, allow full range of times
+                bookingTimeInput.min = '';
+            }
+        });
+
+        // Optional: trigger once on page load
+        bookingDateInput.dispatchEvent(new Event('change'));
+    </script>
+
+</div>
+{% endblock %}

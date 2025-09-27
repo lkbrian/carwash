@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Car Wash{% endblock %}
+
+{% block content %}
+<div class="container py-4 min-vh-100 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1 fw-bold">Admin Dashboard</h2>
+            <p class="text-secondary mb-0">Complete business management and oversight</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'manage_employees' %}" class="btn btn-outline-primary">
+                <i class="fa-solid fa-users me-1"></i>Manage Staff
+            </a>
+            <a href="{% url 'manage_services' %}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-cogs me-1"></i>Services
+            </a>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-success bg-gradient d-flex align-items-center justify-content-center me-3"
+                        style="width:48px;height:48px;">
+                        <i class="fa-solid fa-coins text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0">KES {{ total_revenue|floatformat:0 }}</h4>
+                        <p class="text-secondary mb-0">Total Revenue</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary bg-gradient d-flex align-items-center justify-content-center me-3"
+                        style="width:48px;height:48px;">
+                        <i class="fa-solid fa-calendar-check text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0">{{ total_bookings }}</h4>
+                        <p class="text-secondary mb-0">Total Bookings</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-info bg-gradient d-flex align-items-center justify-content-center me-3"
+                        style="width:48px;height:48px;">
+                        <i class="fa-solid fa-users text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0">{{ total_customers }}</h4>
+                        <p class="text-secondary mb-0">Customers</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-warning bg-gradient d-flex align-items-center justify-content-center me-3"
+                        style="width:48px;height:48px;">
+                        <i class="fa-solid fa-user-tie text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0">{{ total_employees }}</h4>
+                        <p class="text-secondary mb-0">Employees</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    {% if pending_approvals > 0 %}
+    <div class="alert alert-warning mb-4">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+            <div>
+                <strong>{{ pending_approvals }} employee{{ pending_approvals|pluralize }} pending approval</strong>
+                <a href="{% url 'manage_employees' %}" class="btn btn-sm btn-warning ms-2">Review Now</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Recent Bookings -->
+        <div class="col-lg-8">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Recent Bookings</h5>
+                    <a href="{% url 'analytics_dashboard' %}" class="btn btn-sm btn-outline-primary">View Analytics</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Ticket</th>
+                                <th>Customer</th>
+                                <th>Service</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Employee</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in recent_bookings %}
+                            <tr>
+                                <td><strong>#{{ booking.ticket_number }}</strong></td>
+                                <td>{{ booking.customer.get_full_name|default:booking.customer.username }}</td>
+                                <td>{{ booking.service.name }}</td>
+                                <td>{{ booking.booking_date }}</td>
+                                <td>
+                                    <span
+                                        class="badge bg-{% if booking.status == 'completed' %}success{% elif booking.status == 'in_progress' %}info{% elif booking.status == 'confirmed' %}primary{% elif booking.status == 'pending' %}warning{% else %}secondary{% endif %}">
+                                        {{ booking.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if booking.assigned_employee %}
+                                    <span>{{booking.assigned_employee.get_full_name}}</span>
+
+                                    {% else %}
+                                    <span class="text-muted">Unassigned</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="col-lg-4">
+            <div class="card p-4 mb-4">
+                <h5 class="mb-3">This Month</h5>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>Revenue</span>
+                    <strong>KES {{ monthly_revenue|floatformat:0 }}</strong>
+                </div>
+                <div class="progress mb-3" style="height: 6px;">
+                    <div class="progress-bar bg-success"
+                        style="width: {% widthratio monthly_revenue total_revenue 100 %}%"></div>
+                </div>
+            </div>
+
+            <!-- Top Services -->
+            <div class="card p-4">
+                <h5 class="mb-3">Top Services</h5>
+                {% for service in service_stats|slice:":5" %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <div class="fw-medium">{{ service.name }}</div>
+                        <small class="text-muted">{{ service.booking_count }}
+                            booking{{ service.booking_count|pluralize }}</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-medium">KES {{ service.total_revenue|default:0|floatformat:0 }}</div>
+                        {% if service.avg_rating %}
+                        <div class="small text-warning">
+                            {% for i in "12345" %}
+                            {% if forloop.counter <= service.avg_rating %} <i class="fa-solid fa-star"></i>
+                                {% else %}
+                                <i class="fa-regular fa-star"></i>
+                                {% endif %}
+                                {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Performance -->
+    <div class="row g-4 mt-2">
+        <div class="col-12">
+            <div class="card p-4">
+                <h5 class="mb-3">Employee Performance</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Role</th>
+                                <th>Completed Jobs</th>
+                                <th>Average Rating</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for employee in employee_stats %}
+                            <tr>
+                                <td>{{ employee.get_full_name|default:employee.username }}</td>
+                                <td>{{ employee.profile.get_role_display }}</td>
+                                <td>{{ employee.completed_bookings }}</td>
+                                <td>
+                                    {% if employee.avg_rating %}
+                                    {{ employee.avg_rating|floatformat:1 }}/5
+                                    {% else %}
+                                    <span class="text-muted">No ratings</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if employee.profile.is_approved %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

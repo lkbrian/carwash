@@ -1,0 +1,16 @@
+Dear {{ customer_name }},
+
+Thank you for booking with Sparkling Car Wash!
+
+Your booking details:
+- Service: {{ service_name }}
+- Date: {{ booking_date }}
+- Time: {{ booking_time }}
+- Car: {{ car_model }} ({{ car_plate }})
+- Total: ${{ service_price }}
+- Booking ID: #{{ booking_id }}
+
+We will send you updates as your booking progresses.
+
+Best regards,
+Sparkling Car Wash Team

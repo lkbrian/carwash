@@ -19,4 +19,10 @@ class Profile(models.Model):
         return f"{self.user.username} - {self.role}"
     
     def is_employee(self):
-        return self.role in ['washer', 'supervisor', 'admin']
+        return self.role in ['washer', 'supervisor']
+    
+    def is_supervisor(self):
+        return self.role == 'supervisor'
+    
+    def is_admin(self):
+        return self.role == 'admin'

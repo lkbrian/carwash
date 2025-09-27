@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Car Wash{% endblock %}
+
+{% block content %}
+<div class="container py-4 min-vh-100 p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1 fw-bold">My Dashboard</h2>
+            <p class="text-secondary mb-0">Track your bookings and payments</p>
+        </div>
+        <a href="{% url 'services' %}" class="btn btn-accent">Book New Service</a>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card p-3 p-lg-4">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="fa-solid fa-calendar-check text-primary me-2"></i>
+                    <h5 class="mb-0">My Bookings</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if bookings %}
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Date & Time</th>
+                                    <th>Car</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in bookings %}
+                                <tr>
+                                    <td>{{ booking.service.name }}</td>
+                                    <td>{{ booking.booking_date }} at {{ booking.booking_time }}</td>
+                                    <td>{{ booking.car_model }}<br><small>{{ booking.car_plate }}</small></td>
+                                    <td>KES {{ booking.service.price }}</td>
+                                    <td>
+                                        <span
+                                            class="badge bg-{% if booking.status == 'confirmed' %}success{% elif booking.status == 'pending' %}warning{% elif booking.status == 'completed' %}info{% else %}secondary{% endif %}">
+                                            {{ booking.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if booking.status == 'completed' and not booking.review %}
+                                        <a href="{% url 'add_review' booking.id %}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            <i class="fa-solid fa-star me-1"></i>Review
+                                        </a>
+                                        {% elif booking.status == 'completed' and booking.review %}
+                                        <div class="d-flex align-items-center">
+                                            {% for i in "12345" %}
+                                            {% if forloop.counter <= booking.review.rating %} <i
+                                                class="fa-solid fa-star text-warning"></i>
+                                                {% else %}
+                                                <i class="fa-regular fa-star text-muted"></i>
+                                                {% endif %}
+                                                {% endfor %}
+                                        </div>
+                                        {% elif booking.status == 'pending' %}
+                                        <a href="{% url 'payment' booking.id %}" class="btn btn-sm btn-warning">Pay
+                                            Now</a>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <p class="text-secondary mb-2">You have no bookings yet.</p>
+                        <a href="{% url 'services' %}" class="btn btn-outline-secondary">Book your first service</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

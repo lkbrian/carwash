@@ -1,0 +1,12 @@
+Dear {{ employee_name }},
+
+Congratulations! Your employee application has been approved.
+
+You can now log in to your employee dashboard at: {{ login_url }}
+
+Your role: {{ role }}
+
+Welcome to the Sparkling Car Wash team!
+
+Best regards,
+Sparkling Car Wash Management

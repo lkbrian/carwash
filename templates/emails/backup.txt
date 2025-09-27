@@ -1,53 +1,24 @@
-import uuid
-from datetime import timedelta
-
-from django.conf import settings
-from django.contrib import messages
-from django.contrib.auth import logout
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
 from django.contrib.auth.models import User
-from django.core.mail import send_mail
-from django.db.models import Avg, Count, Q, Sum
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import render_to_string
-from django.utils import timezone
-
-from django.contrib.auth.views import LoginView
-from bookings.models import Booking, Review
-from payments.models import Payment
-from services.models import Service
-from users.forms import CustomUserCreationForm, EmployeeRegistrationForm
-from users.models import Profile
 from django.views.decorators.http import require_http_methods
-
-
-class CustomLoginView(LoginView):
-    template_name = "auth/login.html"
-
-    def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return redirect_authenticated_user(request.user)
-        return super().dispatch(request, *args, **kwargs)
-
-
-def redirect_authenticated_user(user):
-    """Redirect authenticated users to their appropriate dashboard"""
-    if user.is_superuser:
-        return redirect("admin_dashboard")
-    try:
-        profile = user.profile
-        if profile.role == "admin":
-            return redirect("admin_dashboard")
-        elif profile.role == "supervisor":
-            return redirect("supervisor_dashboard")
-        elif profile.is_employee():
-            return redirect("employee_dashboard")
-        else:
-            return redirect("dashboard")
-    except Profile.DoesNotExist:
-        return redirect("dashboard")
+from users.forms import CustomUserCreationForm, EmployeeRegistrationForm
+from django.contrib import messages
+from django.http import JsonResponse
+from django.utils import timezone
+from django.db.models import Sum, Count, Avg, Q
+from datetime import datetime, timedelta
+from services.models import Service
+from bookings.models import Booking, Review, Schedule
+from payments.models import Payment
+from users.models import Profile
+import uuid
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.conf import settings
+from django.utils.html import strip_tags
+from email.utils import formataddr
 
 
 def home(request):
@@ -56,19 +27,15 @@ def home(request):
 
 
 def register_type_view(request):
-    if request.user.is_authenticated:
-        return redirect_authenticated_user(request.user)
     return render(request, "auth/register_type.html")
 
 
 def register_view(request):
-    if request.user.is_authenticated:
-        return redirect_authenticated_user(request.user)
     if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            messages.success(request, "Registration successful! Please log in.", user)
+            messages.success(request, "Registration successful! Please log in.")
             return redirect("login")
     else:
         form = CustomUserCreationForm()
@@ -98,6 +65,7 @@ def dashboard_view(request):
         return redirect("admin_dashboard")
 
     # Ensure user has a profile
+    from users.models import Profile
 
     try:
         profile = request.user.profile
@@ -154,7 +122,7 @@ def admin_dashboard(request):
 
     # Recent Activity
     recent_bookings = Booking.objects.select_related(
-        "customer", "service", "assigned_employee"
+        "customer", "service", "assigned_employee__profile"
     ).order_by("-created_at")[:10]
     recent_reviews = Review.objects.select_related(
         "booking__customer", "booking__service"
@@ -196,6 +164,7 @@ def admin_dashboard(request):
         "service_stats": service_stats,
         "employee_stats": employee_stats,
     }
+
     return render(request, "admin/dashboard.html", context)
 
 
@@ -231,6 +200,11 @@ def approve_employee(request, user_id):
     employee.profile.save()
     employee.save()
 
+    # Send approval email
+    from django.core.mail import send_mail
+    from django.conf import settings
+    from django.template.loader import render_to_string
+
     try:
         email_content = render_to_string(
             "emails/approval_email.txt",
@@ -261,29 +235,8 @@ def approve_employee(request, user_id):
 
 @login_required
 def manage_services(request):
-    if request.user.profile.role not in ["admin", "supervisor"]:
-        return redirect_authenticated_user(request.user)
-
-    if request.method == "POST":
-        name = request.POST.get("name")
-        description = request.POST.get("description")
-        price = request.POST.get("price")
-        duration = request.POST.get("duration")
-
-        Service.objects.create(
-            name=name, description=description, price=price, duration=duration
-        )
-        messages.success(request, "Service created successfully!")
-
-        #     services = Service.objects.all().annotate(
-        #      booking_count=Count("booking"),
-        #        total_revenue=Sum(
-        #          "booking__payment__amount", filter=Q(booking__payment__status="completed")
-        #      ),
-        #   )
-
-        #     return render(request, "admin/manage_services.html", {"services": services})
-        return redirect("manage_services")
+    if request.user.profile.role != "admin":
+        return redirect("dashboard")
 
     services = Service.objects.all().annotate(
         booking_count=Count("booking"),
@@ -296,50 +249,8 @@ def manage_services(request):
 
 
 @login_required
-def delete_service(request, service_id):
-    if request.user.profile.role != "admin":
-        return redirect_authenticated_user(request.user)
-
-    service = get_object_or_404(Service, id=service_id)
-    service.delete()
-    messages.success(request, "Service deleted successfully!")
-    return redirect("manage_services")
-
-
-@login_required
-def edit_service(request, service_id):
-    if request.user.profile.role not in ["admin", "supervisor"]:
-        return redirect_authenticated_user(request.user)
-
-    service = get_object_or_404(Service, id=service_id)
-
-    if request.method == "POST":
-        service.name = request.POST.get("name")
-        service.description = request.POST.get("description")
-        service.price = request.POST.get("price")
-        service.duration = request.POST.get("duration")
-        service.save()
-        messages.success(request, "Service updated successfully!")
-        return redirect("manage_services")
-
-
-@login_required
-def toggle_service(request, service_id):
-    if request.user.profile.role not in ["admin", "supervisor"]:
-        return redirect_authenticated_user(request.user)
-
-    service = get_object_or_404(Service, id=service_id)
-    service.is_active = not service.is_active
-    service.save()
-
-    status = "activated" if service.is_active else "deactivated"
-    messages.success(request, f"Service {status} successfully!")
-    return redirect("manage_services")
-
-
-@login_required
 def book_service(request, service_id):
-    service = get_object_or_404(Service, id=service_id, is_active=True)
+    service = get_object_or_404(Service, id=service_id)
 
     if request.method == "POST":
         booking = Booking.objects.create(
@@ -351,9 +262,11 @@ def book_service(request, service_id):
             car_plate=request.POST["car_plate"],
             notes=request.POST.get("notes", ""),
         )
-        Payment.objects.create(
-            booking=booking, amount=service.price, transaction_id=str(uuid.uuid4())
-        )
+
+        # Send booking confirmation email
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.template.loader import render_to_string
 
         try:
             email_content = render_to_string(
@@ -389,23 +302,16 @@ def book_service(request, service_id):
 @login_required
 def payment_view(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, customer=request.user)
-    payment = get_object_or_404(Payment, booking=booking)
 
     if request.method == "POST":
         payment_method = request.POST.get("payment_method")
 
-        if payment:  # update existing
-            payment.amount = booking.service.price
-            payment.payment_method = payment_method
-            payment.status = "completed"
-            payment.save()
-        else:  # create new
-            payment = Payment.objects.create(
-                booking=booking,
-                amount=booking.service.price,
-                payment_method=payment_method,
-                status="completed",
-            )
+        payment = Payment.objects.create(
+            booking=booking,
+            amount=booking.service.price,
+            payment_method=payment_method,
+            status="completed",
+        )
 
         booking.status = "confirmed"
         booking.save()
@@ -413,11 +319,7 @@ def payment_view(request, booking_id):
         messages.success(request, "Payment successful! Your booking is confirmed.")
         return redirect("dashboard")
 
-    return render(
-        request,
-        "customer/payment.html",
-        {"booking": booking, "payment": payment},
-    )
+    return render(request, "customer/payment.html", {"booking": booking})
 
 
 @login_required
@@ -606,16 +508,36 @@ def add_review(request, booking_id):
     return render(request, "customer/add_review.html", {"booking": booking})
 
 
+@login_required
+def update_booking_status(request, booking_id):
+    if not request.user.profile.is_employee():
+        return redirect("dashboard")
+
+    booking = get_object_or_404(Booking, id=booking_id, assigned_employee=request.user)
+
+    if request.method == "POST":
+        new_status = request.POST.get("status")
+        booking.status = new_status
+
+        if new_status == "in_progress":
+            booking.work_started_at = timezone.now()
+        elif new_status == "completed":
+            booking.work_completed_at = timezone.now()
+
+        booking.save()
+        messages.success(
+            request, f"Booking status updated to {booking.get_status_display()}"
+        )
+
+    return redirect("employee_dashboard")
+
+
 def employee_register_view(request):
-    if request.user.is_authenticated:
-        return redirect_authenticated_user(request.user)
     if request.method == "POST":
         form = EmployeeRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            messages.success(
-                request, "Employee registration submitted for approval.", {"user": user}
-            )
+            messages.success(request, "Employee registration submitted for approval.")
             return redirect("login")
     else:
         form = EmployeeRegistrationForm()
@@ -633,8 +555,8 @@ def reject_employee(request, user_id):
     )
 
     # Send rejection email before deleting
-    from django.conf import settings
     from django.core.mail import send_mail
+    from django.conf import settings
     from django.template.loader import render_to_string
 
     try:
@@ -668,10 +590,15 @@ def reject_employee(request, user_id):
     return JsonResponse({"available": available})
 
 
+def check_email(request):
+    email = request.GET.get("email")
+    available = not User.objects.filter(email=email).exists()
+    return JsonResponse({"available": available})
+
+
 @login_required
 def claim_booking(request, booking_id):
-    if not request.user.profile.is_employee() or not request.user.profile.is_approved:
-        messages.e({"success": False, "error": "Access denied"})
+    if not request.user.profile.is_employee():
         return redirect("dashboard")
 
     # Check if employee has current work in progress
@@ -720,9 +647,7 @@ def complete_booking(request, booking_id):
         booking.save()
 
         messages.success(
-            request,
-            f"Job #{booking.ticket_number} submitted for supervisor approval!",
-            quality_check,
+            request, f"Job #{booking.ticket_number} submitted for supervisor approval!"
         )
         return redirect("employee_dashboard")
 
@@ -814,6 +739,39 @@ def reject_job(request, booking_id):
 
 
 @login_required
+def book_service(request, service_id):
+    service = get_object_or_404(Service, id=service_id, is_active=True)
+
+    if request.method == "POST":
+        booking = Booking.objects.create(
+            customer=request.user,
+            service=service,
+            booking_date=request.POST["booking_date"],
+            booking_time=request.POST["booking_time"],
+            car_model=request.POST["car_model"],
+            car_plate=request.POST["car_plate"],
+            notes=request.POST.get("notes", ""),
+        )
+
+        Payment.objects.create(
+            booking=booking, amount=service.price, transaction_id=str(uuid.uuid4())
+        )
+
+        return redirect("payment", booking_id=booking.id)
+
+    return render(request, "customer/booking_form.html", {"service": service})
+
+
+@login_required
+def payment_view(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id, customer=request.user)
+    payment = get_object_or_404(Payment, booking=booking)
+    return render(
+        request, "customer/payment.html", {"booking": booking, "payment": payment}
+    )
+
+
+@login_required
 def process_payment(request, booking_id):
     if request.method == "POST":
         booking = get_object_or_404(Booking, id=booking_id, customer=request.user)
@@ -870,46 +828,98 @@ def logout_view(request):
     return redirect("login")
 
 
-# @login_required
-# def employee_dashboard(request):
-#     if not request.user.profile.is_employee():
-#         messages.error(request, "Access denied. Employee account required.")
-#         return redirect("dashboard")
-
-#     if not request.user.profile.is_approved:
-#         messages.warning(request, "Your account is pending approval.")
-#         return redirect("home")
-
-#     # Get bookings for employee
-#     assigned_bookings = Booking.objects.filter(assigned_employee=request.user)
-#     available_bookings = Booking.objects.filter(
-#         status__in=["confirmed", "pending"], assigned_employee=None
-#     ).exclude(status="cancelled")
-
-#     return render(
-#         request,
-#         "employee/employee_dashboard.html",
-#         {
-#             "assigned_bookings": assigned_bookings,
-#             "available_bookings": available_bookings,
-#         },
-#     )
+def employee_register_view(request):
+    if request.method == "POST":
+        form = EmployeeRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(
+                request,
+                "Employee registration submitted! Please wait for admin approval.",
+            )
+            return redirect("login")
+    else:
+        form = EmployeeRegistrationForm()
+    return render(request, "auth/employee_register.html", {"form": form})
 
 
-# @login_required
-# def claim_booking(request, booking_id):
-#     if not request.user.profile.is_employee() or not request.user.profile.is_approved:
-#         return JsonResponse({"success": False, "error": "Access denied"})
+@login_required
+def employee_dashboard(request):
+    if not request.user.profile.is_employee():
+        messages.error(request, "Access denied. Employee account required.")
+        return redirect("dashboard")
 
-#     booking = get_object_or_404(
-#         Booking, id=booking_id, status="confirmed", assigned_employee=None
-#     )
-#     booking.assigned_employee = request.user
-#     booking.status = "assigned"
-#     booking.save()
+    if not request.user.profile.is_approved:
+        messages.warning(request, "Your account is pending approval.")
+        return redirect("home")
 
-#     messages.success(request, f"Booking #{booking.ticket_number} claimed successfully!")
-#     return JsonResponse({"success": True})
+    # Get bookings for employee
+    assigned_bookings = Booking.objects.filter(assigned_employee=request.user)
+    available_bookings = Booking.objects.filter(
+        status__in=["confirmed", "pending"], assigned_employee=None
+    ).exclude(status="cancelled")
+
+    return render(
+        request,
+        "employee/employee_dashboard.html",
+        {
+            "assigned_bookings": assigned_bookings,
+            "available_bookings": available_bookings,
+        },
+    )
+
+
+@login_required
+def claim_booking(request, booking_id):
+    if not request.user.profile.is_employee() or not request.user.profile.is_approved:
+        return JsonResponse({"success": False, "error": "Access denied"})
+
+    booking = get_object_or_404(
+        Booking, id=booking_id, status="confirmed", assigned_employee=None
+    )
+    booking.assigned_employee = request.user
+    booking.status = "assigned"
+    booking.save()
+
+    messages.success(request, f"Booking #{booking.ticket_number} claimed successfully!")
+    return JsonResponse({"success": True})
+
+
+@login_required
+def update_booking_status(request, booking_id):
+    if not request.user.profile.is_employee():
+        return JsonResponse({"success": False, "error": "Access denied"})
+
+    booking = get_object_or_404(Booking, id=booking_id, assigned_employee=request.user)
+    new_status = request.POST.get("status")
+
+    if new_status in ["in_progress", "completed"]:
+        booking.status = new_status
+        if new_status == "in_progress" and not booking.work_started_at:
+            from django.utils import timezone
+
+            booking.work_started_at = timezone.now()
+        elif new_status == "completed":
+            from django.utils import timezone
+
+            booking.work_completed_at = timezone.now()
+
+        booking.save()
+
+        # Send notification email to customer
+        try:
+            from notifications.utils import send_status_update
+
+            send_status_update(booking)
+        except Exception as e:
+            print(f"Email sending failed: {e}")
+
+        messages.success(
+            request, f"Booking #{booking.ticket_number} status updated to {new_status}!"
+        )
+        return JsonResponse({"success": True})
+
+    return JsonResponse({"success": False, "error": "Invalid status"})
 
 
 def send_pickup_notification(booking):
@@ -944,35 +954,24 @@ def update_booking_status(request, booking_id):
     new_status = request.POST.get("status")
 
     if new_status in ["in_progress", "completed"]:
-        if new_status == "completed":
-            booking.status = (
-                "pending_approval"  # Set to pending approval instead of completed
-            )
+        booking.status = new_status
+
+        if new_status == "in_progress" and not booking.work_started_at:
+            booking.work_started_at = timezone.now()
+            messages.success(request, f"Started work on job #{booking.ticket_number}")
+        elif new_status == "completed":
             booking.work_completed_at = timezone.now()
-            messages.success(
-                request,
-                f"Job #{booking.ticket_number} submitted for supervisor approval!",
-            )
-        else:
-            booking.status = new_status
-            if new_status == "in_progress" and not booking.work_started_at:
-                booking.work_started_at = timezone.now()
-                messages.success(
-                    request, f"Started work on job #{booking.ticket_number}"
-                )
+            messages.success(request, f"Job #{booking.ticket_number} completed!")
 
         booking.save()
         return redirect("employee_dashboard")
 
-    return messages.error({"success": False, "error": "Invalid status"})
+    return JsonResponse({"success": False, "error": "Invalid status"})
 
 
 @login_required
 def approve_booking(request, booking_id):
-    if not (
-        request.user.profile.role == "supervisor"
-        or request.user.profile.role == "admin"
-    ):
+    if not (request.user.profile.is_supervisor() or request.user.profile.is_admin()):
         return redirect("dashboard")
 
     booking = get_object_or_404(Booking, id=booking_id)

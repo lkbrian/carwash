@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'bookings',
     'payments',
     'notifications',
+    'analytics',
 ]
 
 MIDDLEWARE = [
@@ -131,11 +132,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_SENDER = 'Sparkling Car Wash'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'lkbrian742@gmail.com'  # Replace with your Gmail
 EMAIL_HOST_PASSWORD = 'kpjk bvdr cnme rduk'  # Replace with Gmail App Password
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = f'{EMAIL_SENDER} <{EMAIL_HOST_USER}>'
 
 # Crispy Forms
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
@@ -143,4 +145,4 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 # Login/Logout URLs
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
-LOGOUT_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'login'

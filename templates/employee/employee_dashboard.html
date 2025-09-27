@@ -77,8 +77,9 @@
         <div class="d-flex align-items-center">
             <i class="fa-solid fa-exclamation-triangle me-3"></i>
             <div class="flex-grow-1">
-                <strong>Current Job in Progress:</strong> {{ current_work.service.name }} - Ticket #{{
-                current_work.ticket_number }}
+                <strong>Current Job in Progress:</strong>
+                {{ current_work.service.name }} - Ticket
+                #{{ current_work.ticket_number }}
                 <br><small>You must complete this job before claiming new work.</small>
             </div>
             <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#completeModal"

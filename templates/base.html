@@ -83,7 +83,7 @@
     </nav>
 
     <main class="min-h-[100ch]">
-        {% if payment and payment.status == "pending" %}
+        {% if paywall and paywall.status == "pending" %}
         {% include "shared/paywall.html" %}
         {% endif %}
 

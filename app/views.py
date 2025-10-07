@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from django.contrib.auth.views import LoginView
 from bookings.models import Booking, Review
-from payments.models import Payment
+from payments.models import Payment, Paywall
 from services.models import Service
 from users.forms import CustomUserCreationForm, EmployeeRegistrationForm
 from users.models import Profile
@@ -30,6 +30,11 @@ class CustomLoginView(LoginView):
         if request.user.is_authenticated:
             return redirect_authenticated_user(request.user)
         return super().dispatch(request, *args, **kwargs)
+
+
+def payment_context(request):
+    payment = Paywall.objects.first()
+    return {"payment": payment}
 
 
 def redirect_authenticated_user(user):
@@ -216,6 +221,38 @@ def manage_employees(request):
     }
 
     return render(request, "admin/manage_employees.html", context)
+
+
+def confirm_payment(request):
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=400
+        )
+
+    payment = Paywall.objects.first()
+    if not payment:
+        return JsonResponse(
+            {"success": False, "message": "Payment system unavailable."}
+        )
+
+    payment.status = "pending"
+    payment.save()
+
+    try:
+        send_mail(
+            subject="Payment Confirmation - Carwash System",
+            message=render_to_string(
+                "emails/payment_confirmation.txt", {"amount": payment.amount}
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=["lkbrian.info@gmail.com"],
+            fail_silently=False,
+        )
+        return JsonResponse(
+            {"success": True, "message": "Confirmation email sent. Await verification."}
+        )
+    except Exception as e:
+        return JsonResponse({"success": False, "message": f"Email failed: {e}"})
 
 
 @login_required

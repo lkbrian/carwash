@@ -1,0 +1,6 @@
+A user has clicked "I Have Paid" on the Carwash system.
+
+Amount: KES {{ amount }}
+
+If this payment is verified, reply to this email with the word “Paid” (case-insensitive)
+to mark it as complete.

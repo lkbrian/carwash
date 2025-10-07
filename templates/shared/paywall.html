@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Required</title>
+  <!-- ✅ Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      background-color: #19191b;
+    }
+
+    .active-tab {
+      background-color: #ef4444;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+
+<body class="font-sans text-black overflow-hidden h-screen flex items-center justify-center">
+  <div class="fixed inset-0 bg-[rgba(25,25,27,0.95)] flex items-center justify-center z-[9999]">
+    <div class="bg-white rounded-2xl p-8 w-[90%] max-w-md text-center shadow-2xl">
+      <h1 class="text-2xl font-bold text-gray-900 mb-3">Payment Required</h1>
+      <p class="text-gray-700 mb-6">
+        To continue using this system, please complete your payment using one of the options below.
+      </p>
+
+      <!-- ✅ Tabs -->
+      <div class="flex justify-center space-x-2 mb-6">
+        <button class="tab-btn active-tab px-4 py-2 rounded-lg font-semibold" data-tab="mpesa">M-Pesa</button>
+        <button class="tab-btn px-4 py-2 rounded-lg font-semibold" data-tab="safaricom">Safaricom</button>
+        <button class="tab-btn px-4 py-2 rounded-lg font-semibold" data-tab="offline">Offline</button>
+      </div>
+
+      <!-- ✅ Tab Contents -->
+      <div id="mpesa" class="tab-content active">
+        <h3 class="text-xl font-semibold mb-3">M-Pesa (QR Code)</h3>
+        <div class="flex justify-center mb-4">
+          <img src="https://portfolio-v2-one-khaki.vercel.app/mpesa.jpg" alt="M-Pesa QR Code"
+            class="w-60 h-60 rounded-lg object-contain">
+        </div>
+        <p class="text-gray-700 mb-2">Scan this QR code using the M-Pesa app to complete your payment.</p>
+      </div>
+
+      <div id="safaricom" class="tab-content">
+        <h3 class="text-xl font-semibold mb-3">Safaricom App (QR Code)</h3>
+        <div class="flex justify-center mb-4">
+          <img src="https://portfolio-v2-one-khaki.vercel.app/safaricom.jpg" alt="Safaricom QR Code"
+            class="w-60 h-60 rounded-lg object-contain">
+        </div>
+        <p class="text-gray-700 mb-2">Scan this QR code within the Safaricom app to pay instantly.</p>
+      </div>
+
+      <div id="offline" class="tab-content">
+        <h3 class="text-xl font-semibold mb-3">Offline Payment</h3>
+        <div class="bg-red-50 text-left border-l-4 border-red-500 p-4 rounded-rt-md rounded-rb-md">
+          <ul class="list-disc list-inside text-gray-700 space-y-1">
+            <li>Go to your sim toolkit.</li>
+            <li>Mobile number: <br><strong class="ml-4">0704807868 | 0798684350</strong></li>
+            <li>Amount: <strong>KES 500</strong></li>
+            <!-- <li>Keep the receipt and send it to: <strong>lkbrian742@gmail.com</strong></li> -->
+          </ul>
+        </div>
+      </div>
+
+      <div id="message-box" class="hidden mt-4 text-sm font-medium rounded-lg p-3"></div>
+
+      <button type="button" onclick="confirmPayment(event)"
+        class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg mt-6 font-semibold transition">
+        I Have Paid
+      </button>
+
+      <p class="text-xs text-gray-500 mt-3">Access will be granted once payment is verified.</p>
+    </div>
+  </div>
+
+  <!-- ✅ JavaScript for Tabs -->
+  <script>
+    const tabs = document.querySelectorAll(".tab-btn");
+    const contents = document.querySelectorAll(".tab-content");
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(t => t.classList.remove("active-tab"));
+        contents.forEach(c => c.classList.remove("active"));
+
+        tab.classList.add("active-tab");
+        document.getElementById(tab.dataset.tab).classList.add("active");
+      });
+    });
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(";").shift();
+    }
+
+    async function confirmPayment(e) {
+      e.preventDefault();
+      const messageBox = document.getElementById("message-box");
+      messageBox.classList.remove("hidden", "bg-green-100", "bg-red-100", "text-green-700", "text-red-700");
+      messageBox.classList.add("bg-yellow-100", "text-yellow-700");
+      messageBox.textContent = "Processing your payment confirmation...";
+
+      try {
+        const response = await fetch("{% url 'confirm_payment' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: JSON.stringify({ confirm: true }),
+        });
+
+        const data = await response.json();
+
+        messageBox.classList.remove("bg-yellow-100", "text-yellow-700");
+        if (data.success) {
+          messageBox.classList.add("bg-green-100", "text-green-700");
+        } else {
+          messageBox.classList.add("bg-red-100", "text-red-700");
+        }
+
+        messageBox.textContent = data.message;
+      } catch (error) {
+        messageBox.classList.remove("bg-yellow-100", "text-yellow-700");
+        messageBox.classList.add("bg-red-100", "text-red-700");
+        messageBox.textContent = "Something went wrong. Please try again later.";
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+
+</html>

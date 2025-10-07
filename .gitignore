@@ -25,3 +25,4 @@ local_settings.py
 *.pem
 *.cer
 utils.py
+pay.py
